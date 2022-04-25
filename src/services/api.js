@@ -17,8 +17,16 @@ function signUp(body) {
 
     return promise;
 }
+
+function getTestsByQuery(queryValue, token) {
+    const config = createConfig(token);
+    const promise = axios.get(`${BASE_URL}/tests?filter=${queryValue}`, config);
+    return promise;
+}
+
 const api = {
     signIn,
     signUp,
+    getTestsByQuery,
 };
 export default api;

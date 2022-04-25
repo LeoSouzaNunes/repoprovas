@@ -7,10 +7,10 @@ import InternalAccordion from "../InternalAccordion";
 import { v4 as uuid } from "uuid";
 import { Box } from "@mui/material";
 
-export default function SimpleAccordion({ terms }) {
+export default function TeachersAccordion({ teachers }) {
     return (
         <Box component="div" sx={{ width: "100%" }}>
-            {terms?.map(({ number, disciplines }) => {
+            {teachers?.map(({ name, disciplines }) => {
                 if (disciplines.length === 0) return;
                 return (
                     <Accordion sx={{ width: "100%" }} key={uuid()}>
@@ -20,21 +20,8 @@ export default function SimpleAccordion({ terms }) {
                             aria-controls="panel1a-content"
                             id="panel1a-header"
                         >
-                            <Typography>{`${number}º período`}</Typography>
+                            <Typography>{`${name}`}</Typography>
                         </AccordionSummary>
-
-                        <AccordionDetails>
-                            {Object.keys(disciplines).map((discipline) => {
-                                return discipline.length === 0 ? (
-                                    ""
-                                ) : (
-                                    <InternalAccordion
-                                        key={uuid()}
-                                        name={discipline}
-                                    />
-                                );
-                            })}
-                        </AccordionDetails>
                     </Accordion>
                 );
             })}
