@@ -48,6 +48,9 @@
     ]
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.182"
+    "@faker-js/faker": "^6.2.0",
+    "@types/lodash": "^4.14.182",
+    "cypress": "^9.6.0",
+    "eslint-plugin-cypress": "^2.12.1"
   }
 }
