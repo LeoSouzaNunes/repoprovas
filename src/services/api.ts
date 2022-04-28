@@ -1,103 +1,120 @@
 import axios from "axios";
 
 const baseAPI = axios.create({
-  baseURL: "http://localhost:5000/",
+    baseURL: "http://localhost:5000/",
 });
 
 interface UserData {
-  email: string;
-  password: string;
+    email: string;
+    password: string;
 }
 
 function getConfig(token: string) {
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
+    return {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
 }
 
 async function signUp(signUpData: UserData) {
-  await baseAPI.post("/sign-up", signUpData);
+    await baseAPI.post("/sign-up", signUpData);
 }
 
 async function signIn(signInData: UserData) {
-  return baseAPI.post<{ token: string }>("/sign-in", signInData);
+    return baseAPI.post<{ token: string }>("/sign-in", signInData);
 }
 
 export interface Term {
-  id: number;
-  number: number;
+    id: number;
+    number: number;
 }
 
 export interface Discipline {
-  id: number;
-  name: string;
-  teacherDisciplines: TeacherDisciplines[];
-  term: Term;
+    id: number;
+    name: string;
+    teacherDisciplines: TeacherDisciplines[];
+    term: Term;
 }
 
 export interface TeacherDisciplines {
-  id: number;
-  discipline: Discipline;
-  teacher: Teacher;
-  tests: Test[];
+    id: number;
+    discipline: Discipline;
+    teacher: Teacher;
+    tests: Test[];
 }
 
 export interface Teacher {
-  id: number;
-  name: string;
+    id: number;
+    name: string;
 }
 
 export interface Category {
-  id: number;
-  name: string;
+    id: number;
+    name: string;
 }
 
 export interface Test {
-  id: number;
-  name: string;
-  pdfUrl: string;
-  category: Category;
+    id: number;
+    name: string;
+    pdfUrl: string;
+    category: Category;
 }
 
 export type TestByDiscipline = Term & {
-  disciplines: Discipline[];
+    disciplines: Discipline[];
 };
 
 export type TestByTeacher = TeacherDisciplines & {
-  teacher: Teacher;
-  disciplines: Discipline[];
-  tests: Test[];
+    teacher: Teacher;
+    disciplines: Discipline[];
+    tests: Test[];
 };
 
 async function getTestsByDiscipline(token: string) {
-  const config = getConfig(token);
-  return baseAPI.get<{ tests: TestByDiscipline[] }>(
-    "/tests?groupBy=disciplines",
-    config
-  );
+    const config = getConfig(token);
+    return baseAPI.get<{ tests: TestByDiscipline[] }>(
+        "/tests?groupBy=disciplines",
+        config
+    );
+}
+async function getTestsByDisciplineName(token: string, disciplineName: string) {
+    const config = getConfig(token);
+    return baseAPI.get<{ tests: TestByDiscipline[] }>(
+        `/tests?groupBy=disciplines&whereContent=${disciplineName}`,
+        config
+    );
 }
 
 async function getTestsByTeacher(token: string) {
-  const config = getConfig(token);
-  return baseAPI.get<{ tests: TestByTeacher[] }>(
-    "/tests?groupBy=teachers",
-    config
-  );
+    const config = getConfig(token);
+    return baseAPI.get<{ tests: TestByTeacher[] }>(
+        "/tests?groupBy=teachers",
+        config
+    );
+}
+
+async function getTestsByTeacherName(token: string, teacherName: string) {
+    const config = getConfig(token);
+    return baseAPI.get<{ tests: TestByTeacher[] }>(
+        `/tests?groupBy=teachers&whereContent=${teacherName}`,
+        config
+    );
 }
 
 async function getCategories(token: string) {
-  const config = getConfig(token);
-  return baseAPI.get<{ categories: Category[] }>("/categories", config);
+    const config = getConfig(token);
+    return baseAPI.get<{ categories: Category[] }>("/categories", config);
 }
 
 const api = {
-  signUp,
-  signIn,
-  getTestsByDiscipline,
-  getTestsByTeacher,
-  getCategories,
+    signUp,
+    signIn,
+    getTestsByDiscipline,
+    getTestsByTeacher,
+    getCategories,
+    getTestsByDisciplineName,
+    getTestsByTeacherName,
 };
 
 export default api;
