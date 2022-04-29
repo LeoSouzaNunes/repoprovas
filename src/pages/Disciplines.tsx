@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useAlert from "../hooks/useAlert";
 import useAuth from "../hooks/useAuth";
 import api, {
     Category,
@@ -250,6 +251,19 @@ function Tests({
     categoryId,
     testsWithTeachers: testsWithDisciplines,
 }: TestsProps) {
+    const { token } = useAuth();
+    const { setMessage } = useAlert();
+
+    async function handleClickTestPdf(e: any, testId: number) {
+        if (!token) {
+            return;
+        }
+        try {
+            await api.updateTestViews(token, testId);
+        } catch (err) {
+            setMessage({ type: "error", text: "Impossible to update views!" });
+        }
+    }
     return (
         <>
             {testsWithDisciplines.map((testsWithDisciplines) =>
@@ -262,7 +276,16 @@ function Tests({
                                 target="_blank"
                                 underline="none"
                                 color="inherit"
-                            >{`${test.name} (${testsWithDisciplines.teacherName})`}</Link>
+                                onClick={(e) => {
+                                    handleClickTestPdf(e, test.id);
+                                }}
+                            >{`${test.name} (${
+                                testsWithDisciplines.teacherName
+                            }) : ${test.views} ${
+                                test.views === 1
+                                    ? "visualização"
+                                    : "visualizações"
+                            }`}</Link>
                         </Typography>
                     ))
             )}
