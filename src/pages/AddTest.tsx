@@ -10,7 +10,11 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAlert from "../hooks/useAlert";
 import useAuth from "../hooks/useAuth";
-import api, { PlainDiscipline } from "../services/api";
+import api, {
+    Category,
+    PlainDiscipline,
+    TeachersByDisciplines,
+} from "../services/api";
 
 const styles = {
     title: {
@@ -45,6 +49,12 @@ interface TestData {
     teacher: string | null;
 }
 
+interface PlainData {
+    categories: Category[] | null;
+    disciplines: PlainDiscipline[] | null;
+    teachers: TeachersByDisciplines[] | null;
+}
+
 function AddTest() {
     const navigate = useNavigate();
     const { token } = useAuth();
@@ -56,10 +66,16 @@ function AddTest() {
         discipline: null,
         teacher: null,
     });
-    console.log(formData);
+
     const [categoryArray, setCategoryArray] = useState<string[]>([]);
     const [disciplineArray, setDisciplineArray] = useState<string[]>([]);
     const [teacherArray, setTeacherArray] = useState<string[]>([]);
+    const [plainDataArrays, setPlainDataArrays] = useState<PlainData>({
+        categories: null,
+        disciplines: null,
+        teachers: null,
+    });
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         async function loadPage() {
@@ -68,18 +84,20 @@ function AddTest() {
                     return;
                 }
                 setFormData({ ...formData, teacher: null });
-                const filteredCategoriesArray = await getCategoryArray(token);
+                const { filteredCategoriesArray, categories } =
+                    await getCategoryArray(token);
+                setCategoryArray(filteredCategoriesArray);
+
                 const { filteredDisciplinesArray, disciplines } =
                     await getDisciplinesArray(token);
-                setCategoryArray(filteredCategoriesArray);
+
                 if (formData.discipline) {
-                    const filteredTeachersArray = await getTeachersArray(
-                        disciplines,
-                        token
-                    );
-                    if (!filteredTeachersArray) {
-                        return;
-                    }
+                    const { filteredTeachersArray, teachers } =
+                        (await getTeachersArray(disciplines, token)) as {
+                            filteredTeachersArray: string[];
+                            teachers: TeachersByDisciplines[];
+                        };
+                    setPlainDataArrays({ categories, disciplines, teachers });
                     setTeacherArray(filteredTeachersArray);
                 }
                 setDisciplineArray(filteredDisciplinesArray);
@@ -96,9 +114,11 @@ function AddTest() {
     async function getCategoryArray(token: string) {
         const { data } = await api.getCategories(token);
         const { categories } = data;
-        return categories.map((category) => {
+        const filteredCategoriesArray = categories.map((category) => {
             return category.name;
         });
+
+        return { filteredCategoriesArray, categories };
     }
 
     async function getDisciplinesArray(token: string) {
@@ -122,10 +142,11 @@ function AddTest() {
             token,
             disciplineId
         );
-        const teachersArray = data.teachers.map((item) => {
+
+        const filteredTeachersArray = data.teachers.map((item) => {
             return item.teacher.name;
         });
-        return teachersArray;
+        return { filteredTeachersArray, teachers: data.teachers };
     }
 
     function getDisciplineId(disciplines: PlainDiscipline[]) {
@@ -134,11 +155,62 @@ function AddTest() {
         );
         return item?.id;
     }
+    function getCategoryId(categories: Category[]) {
+        const item = categories.find(
+            (category) => category.name === formData.category
+        );
+        return item?.id;
+    }
+    function getTeacherId(teachers: TeachersByDisciplines[]) {
+        const item = teachers.find(
+            ({ teacher }) => teacher.name === formData.teacher
+        );
+        return item?.teacher.id;
+    }
 
     function handleChangeTextField(e: any) {
         const name = e.target.name;
         const value = e.target.value;
         setFormData({ ...formData, [`${name}`]: value });
+    }
+
+    function handleSubmit(e: any) {
+        e.preventDefault();
+        setIsLoading(true);
+        if (
+            !token ||
+            !plainDataArrays.categories ||
+            !plainDataArrays.disciplines ||
+            !plainDataArrays.teachers
+        ) {
+            setIsLoading(false);
+            return;
+        }
+        const categoryId = getCategoryId(plainDataArrays.categories);
+        const disciplineId = getDisciplineId(plainDataArrays.disciplines);
+        const teacherId = getTeacherId(plainDataArrays.teachers);
+
+        const test = {
+            name: formData.title,
+            pdfUrl: formData.pdfUrl,
+            categoryId,
+            disciplineId,
+            teacherId,
+        };
+
+        const promise = api.postTest(token, test);
+        promise.then((response) => {
+            setMessage({ type: "success", text: "Prova criada com sucesso!" });
+            setIsLoading(false);
+            navigate("/app/disciplinas");
+        });
+        promise.catch((error) => {
+            setIsLoading(false);
+            setMessage({
+                type: "error",
+                text: "Não foi possível criar a prova, tente mais tarde.",
+            });
+        });
     }
 
     return (
@@ -180,7 +252,7 @@ function AddTest() {
                         Adicionar
                     </Button>
                 </Box>
-                <Box component="form" sx={styles.form}>
+                <Box component="form" onSubmit={handleSubmit} sx={styles.form}>
                     <TextField
                         InputLabelProps={{ required: false }}
                         required
@@ -254,6 +326,7 @@ function AddTest() {
                         disabled={!formData.discipline}
                     />
                     <Button
+                        disabled={isLoading}
                         sx={{ width: "100%", height: "45px" }}
                         variant="contained"
                         type="submit"

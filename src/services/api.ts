@@ -67,6 +67,14 @@ export interface Test {
     views: number;
 }
 
+export interface TestCreateData {
+    name: string;
+    pdfUrl: string;
+    categoryId: number;
+    disciplineId: number;
+    teacherId: number;
+}
+
 export type TestByDiscipline = Term & {
     disciplines: Discipline[];
 };
@@ -136,6 +144,11 @@ async function getTeachersByDisciplineId(token: string, disciplineId: number) {
     );
 }
 
+async function postTest(token: string, body: any) {
+    const config = getConfig(token);
+    return baseAPI.post(`/tests`, body, config);
+}
+
 async function updateTestViews(token: string, testId: number) {
     const config = getConfig(token);
     return baseAPI.put(`/tests/${testId}/views`, {}, config);
@@ -152,6 +165,7 @@ const api = {
     updateTestViews,
     getDisciplines,
     getTeachersByDisciplineId,
+    postTest,
 };
 
 export default api;
