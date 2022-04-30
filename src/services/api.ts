@@ -37,6 +37,11 @@ export interface Discipline {
     term: Term;
 }
 
+export interface PlainDiscipline {
+    id: number;
+    name: string;
+}
+
 export interface TeacherDisciplines {
     id: number;
     discipline: Discipline;
@@ -71,6 +76,13 @@ export type TestByTeacher = TeacherDisciplines & {
     disciplines: Discipline[];
     tests: Test[];
 };
+
+type DisciplineData = Omit<Discipline, "teacherDisciplines" | "term">;
+
+export interface TeachersByDisciplines {
+    teacher: Teacher;
+    discipline: DisciplineData;
+}
 
 async function getTestsByDiscipline(token: string) {
     const config = getConfig(token);
@@ -108,6 +120,22 @@ async function getCategories(token: string) {
     return baseAPI.get<{ categories: Category[] }>("/categories", config);
 }
 
+async function getDisciplines(token: string) {
+    const config = getConfig(token);
+    return baseAPI.get<{ disciplines: PlainDiscipline[] }>(
+        "/disciplines",
+        config
+    );
+}
+
+async function getTeachersByDisciplineId(token: string, disciplineId: number) {
+    const config = getConfig(token);
+    return baseAPI.get<{ teachers: TeachersByDisciplines[] }>(
+        `/teachers/${disciplineId}`,
+        config
+    );
+}
+
 async function updateTestViews(token: string, testId: number) {
     const config = getConfig(token);
     return baseAPI.put(`/tests/${testId}/views`, {}, config);
@@ -122,6 +150,8 @@ const api = {
     getTestsByDisciplineName,
     getTestsByTeacherName,
     updateTestViews,
+    getDisciplines,
+    getTeachersByDisciplineId,
 };
 
 export default api;
