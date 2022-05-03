@@ -50,7 +50,6 @@ function Instructors() {
                     searchData
                 );
                 setTeachersDisciplines(testsData.tests);
-                console.log(testsData);
             } catch (error) {
                 console.log("Nenhum resultado para a busca.");
             }
@@ -231,9 +230,13 @@ function Tests({ tests, disciplineName }: TestsProps) {
                         target="_blank"
                         underline="none"
                         color="inherit"
-                    >{`${test.name} (${disciplineName})`}</Link>
+                    >{`${test.name} (${disciplineName}): ${
+                        test.views === 1
+                            ? `${test.views} visualização`
+                            : `${test.views} visualizações`
+                    }`}</Link>
                 </Typography>
-            ))}
+            ))
         </>
     );
 }

@@ -50,7 +50,6 @@ function Disciplines() {
                     searchData
                 );
                 setTerms(testsData.tests);
-                console.log(testsData);
             } catch (error) {
                 console.log("Nenhum resultado para a busca.");
             }
