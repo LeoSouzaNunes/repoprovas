@@ -236,7 +236,7 @@ function Tests({ tests, disciplineName }: TestsProps) {
                             : `${test.views} visualizações`
                     }`}</Link>
                 </Typography>
-            ))
+            ))}
         </>
     );
 }
